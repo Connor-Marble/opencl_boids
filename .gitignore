@@ -1,0 +1,7 @@
+*.dll
+./BoidParticles/targetver.h
+./BoidParticles/Debug
+./BoidParticles/x64
+*.vcxproj
+*.filters
+./.vs
