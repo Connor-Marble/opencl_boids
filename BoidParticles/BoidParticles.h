@@ -10,6 +10,15 @@
 #include <GL\glut.h>
 #include <CL\cl.hpp>
 #include <sstream>
+#include <mutex>
+#include <thread>
+
+#include "osc\OscReceivedElements.h"
+#include "osc\OscPacketListener.h"
+#include "osc\OscOutboundPacketStream.h"
+#include "UdpSocket.h"
+
+#define PORT 58823
 
 void CreateOpenGL(int argc, char** argv);
 void CheckError(int code);
@@ -35,13 +44,15 @@ class Particles {
 	public:
 		int PARTICLE_NUM;
 
+		
+
 		std::vector<cl::Memory> vbos;
 		std::vector<Vector4> *pos_vecs;
-		std::vector<Vector4> *vel_vecs;
+		std::vector<Vector4> *col_vecs;
 
-		cl::Buffer pos, vel, startpos, startvel;
+		cl::Buffer pos, vel;
 		Vector4 *hostvecs;
-		int pos_vbo, vel_vbo;
+		int pos_vbo, vel_vbo, col_vbo;
 
 		size_t arr_size;
 
@@ -54,6 +65,8 @@ class Particles {
 		void LoadKernel();
 
 		void run();
+
+		void updateGoal(int goal);
 
 		int x, y;
 
@@ -70,4 +83,26 @@ class Particles {
 
 		UINT clDevice;
 
+		int goal;
+
+		std::mutex p_mutex;
+		//access in mutex
+
 };
+
+
+
+class BoidsOSCClient : public osc::OscPacketListener
+{
+public:
+
+	BoidsOSCClient(Particles *particles);
+
+protected:
+
+	virtual void ProcessMessage(const osc::ReceivedMessage& message, const IpEndpointName& remoteEndpoint);
+
+private:
+	Particles *particles;
+};
+
